@@ -10,6 +10,5 @@ import org.mapstruct.Mapper;
 public interface CartMapper {
     CartDto toDto(Cart cart);
 
-
     CartItemDto toDto(CartItem cartItem);
 }
