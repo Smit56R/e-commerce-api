@@ -42,7 +42,7 @@ public class CartController {
     public ResponseEntity<CartItemDto> addToCart(
             @Parameter(description = "Cart ID", required = true)
             @PathVariable(name = "cartId") UUID cartId,
-            @RequestBody AddItemToCartRequest request
+            @RequestBody @Valid AddItemToCartRequest request
     ) {
         var cartItemDto = cartService.addToCart(cartId, request.getProductId());
 
