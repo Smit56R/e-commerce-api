@@ -1,46 +1,42 @@
 package com.codewithmosh.store.services;
 
+import com.codewithmosh.store.config.JwtConfig;
 import com.codewithmosh.store.entities.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 
+@AllArgsConstructor
 @Service
 public class JwtService {
-    @Value("${spring.jwt.secret}")
-    private String secret;
+    private JwtConfig jwtConfig;
 
     public String generateAccessToken(User user) {
-        final long tokenExpirationTime = 300; // 5 mins
-
-        return generateToken(user, tokenExpirationTime);
+        return generateToken(user, jwtConfig.getAccessTokenExpiration());
     }
 
     public String generateRefreshToken(User user) {
-        final long tokenExpirationTime = 604800; // 7 days
-
-        return generateToken(user, tokenExpirationTime);
+        return generateToken(user, jwtConfig.getRefreshTokenExpiration());
     }
 
-    private String generateToken(User user, long tokenExpirationTime) {
+    private String generateToken(User user, int tokenExpirationTime) {
         return Jwts.builder()
                 .subject(user.getId().toString())
                 .claim("name", user.getName())
                 .claim("email", user.getEmail())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + tokenExpirationTime * 1000))
-                .signWith(Keys.hmacShaKeyFor(secret.getBytes()))
+                .signWith(jwtConfig.getSecretKey())
                 .compact();
     }
 
     private Claims getClaims(String token) {
         return Jwts.parser()
-                .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
+                .verifyWith(jwtConfig.getSecretKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
