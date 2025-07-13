@@ -1,9 +1,6 @@
 package com.codewithmosh.store.controllers;
 
-import com.codewithmosh.store.dtos.ChangePasswordRequest;
-import com.codewithmosh.store.dtos.RegisterUserRequest;
-import com.codewithmosh.store.dtos.UpdateUserRequest;
-import com.codewithmosh.store.dtos.UserDto;
+import com.codewithmosh.store.dtos.*;
 import com.codewithmosh.store.entities.Role;
 import com.codewithmosh.store.mappers.UserMapper;
 import com.codewithmosh.store.repositories.UserRepository;
@@ -16,7 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -55,7 +51,7 @@ public class UserController {
             UriComponentsBuilder uriBuilder
     ) {
         if(userRepository.existsByEmail(request.getEmail())) {
-            return ResponseEntity.badRequest().body(Map.of("email", "Email already exists"));
+            return ResponseEntity.badRequest().body(new ErrorDto("Email already exists!"));
         }
 
         var user = userMapper.toEntity(request);

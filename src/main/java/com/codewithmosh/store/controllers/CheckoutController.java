@@ -2,6 +2,7 @@ package com.codewithmosh.store.controllers;
 
 import com.codewithmosh.store.dtos.CheckoutRequest;
 import com.codewithmosh.store.dtos.CheckoutResponse;
+import com.codewithmosh.store.dtos.ErrorDto;
 import com.codewithmosh.store.entities.Order;
 import com.codewithmosh.store.entities.OrderItem;
 import com.codewithmosh.store.entities.OrderStatus;
@@ -13,8 +14,6 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @AllArgsConstructor
 @RestController
@@ -32,12 +31,12 @@ public class CheckoutController {
         var cart = cartRepository.getCartWithItems(request.getCartId()).orElse(null);
         if(cart == null) {
             return ResponseEntity.badRequest().body(
-                    Map.of("message", "Cart not found")
+                    new ErrorDto("Cart not found")
             );
         }
         if(cart.getItems().isEmpty()) {
             return ResponseEntity.badRequest().body(
-                    Map.of("message", "Cart is empty")
+                    new ErrorDto("Cart is empty")
             );
         }
 
