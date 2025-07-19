@@ -2,45 +2,31 @@ package com.codewithmosh.store.auth;
 
 import com.codewithmosh.store.users.UserDto;
 import com.codewithmosh.store.users.UserMapper;
-import com.codewithmosh.store.users.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping("/auth")
 public class AuthController {
-    private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
     private final JwtConfig jwtConfig;
-    private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<JwtResponse> login(
+    public JwtResponse login(
             @RequestBody @Valid LoginRequest request,
             HttpServletResponse response
     ) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
-
-        var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
-
-        var accessToken = jwtService.generateAccessToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
+        var loginResponse = authService.login(request);
+        var accessToken = loginResponse.getAccessToken();
+        var refreshToken = loginResponse.getRefreshToken();
 
         var cookie = new Cookie("refreshToken", refreshToken.toString());
         cookie.setHttpOnly(true);
@@ -49,25 +35,16 @@ public class AuthController {
         cookie.setSecure(true);
         response.addCookie(cookie);
 
-        return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
+        return new JwtResponse(accessToken.toString());
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<JwtResponse> refresh(
+    public JwtResponse refresh(
             @CookieValue(name = "refreshToken") String refreshToken
     ) {
-        var jwt = jwtService.parseToken(refreshToken);
+        var accessToken = authService.refreshAccessToken(refreshToken);
 
-        if (jwt == null || jwt.isExpired()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        var userId = jwt.getUserId();
-        var user = userRepository.findById(userId).orElseThrow();
-
-        var accessToken = jwtService.generateAccessToken(user);
-
-        return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
+        return new JwtResponse(accessToken.toString());
     }
 
     @GetMapping("/me")
