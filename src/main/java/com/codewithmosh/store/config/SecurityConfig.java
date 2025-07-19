@@ -61,6 +61,7 @@ public class SecurityConfig {
                                 .requestMatchers("/auth/validate").permitAll()
                                 .requestMatchers("/auth/refresh").permitAll()
                                 .requestMatchers("/carts/**").permitAll()
+                                .requestMatchers("/checkout/webhook").permitAll()
                                 .requestMatchers("/admin/**").hasRole(Role.ADMIN.name())
                                 .requestMatchers(HttpMethod.POST, "/users").permitAll()
                                 .anyRequest().authenticated()
